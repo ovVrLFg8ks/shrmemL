@@ -1,12 +1,21 @@
 cmake_minimum_required(VERSION 3.10)
-project(ShrMemClient VERSION 1.0.0 LANGUAGES CXX)
+project(SharedMemClient VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 
-add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main2.cpp)
+set(CLIENT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(CLIENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
-target_compile_options(${PROJECT_NAME} PRIVATE "-Wall")
+file(GLOB CLIENT_HEADERS ${CLIENT_INCLUDE_DIR}/*.hpp)
+file(GLOB CLIENT_SOURCE ${CLIENT_SOURCE_DIR}/*.cpp)
+
+add_library(${PROJECT_NAME} SHARED ${CLIENT_SOURCE})
+
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 
 target_link_libraries (${PROJECT_NAME} PRIVATE SharedMemory)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CLIENT_INCLUDE_DIR})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
+
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})

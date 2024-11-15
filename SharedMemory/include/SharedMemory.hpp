@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -12,48 +11,56 @@
 #include <cstring>
 #include <algorithm>
 
+
+#include "Protocol.hpp"
+
 class SharedMemory {
 private:
-    #define SM_WRITE 0
-    #define  SM_READ 1
+    // shared memory owner
+    static constexpr bool SM_SERVER = 0;
+    static constexpr bool SM_CLIENT = 1;
 
-    const char *memname;
-    constexpr static size_t bufsize = 16;   // minimum 4 for numbers
-    const int waitTime = 100;
-    u_int16_t sleepDurationMs = 100;
-    int fd;
+    const char *memname;                    // shared memory unique name
+    constexpr static size_t bufsize = 16;   // minimum 4 to fit int32 
+    u_int16_t sleepDurationMs = 100;        // sleep in loops
+    int awaitIter = 10;                     // loops max number of iteratoins (in case of server not answering)
+    int fd;                                 // shared memory object
 
-    //
+    // shared memory data
     struct shrData {
-        char state = SM_WRITE;  
-        int tag = 0;
-        size_t dataSize = 0;    // for text only
-        char data[bufsize] {0};
+        bool state = SM_SERVER;  // who owns memory (server/client)
+        int tag = 0;            // specifies type of the current request
+        size_t dataSize = 0;    // used for text stream only
+        char data[bufsize] {0}; 
     };
 
-    shrData *shmp;
+    shrData *shmp;  // mapping in VAS
 
-    int Init();
+    int Init();     // create shared memory object and mappings
 
-    int Close();
+    int Close();    // close shared memory
 
-    void int32ToChar(char a[], int32_t n);
+    void int32ToChar(char a[], int32_t n); // place int32 to shrData.data[]
 
-    int32_t charToInt32(char a[]);
+    int32_t charToInt32(char a[]);         // extract int32 from shrData.data[]
+
+    void SendStreamCore(size_t &dataLength, char *ar, bool sender);
+
+    std::string RecieveStreamCore(bool reciever);
 
 public:
 
     SharedMemory(const char *memname) : memname(memname) {
         Init();
-    };
+    }
     
     ~SharedMemory() {
         Close();
     }
 
-    char GetState() { return shmp->state; }
+    bool GetState() { return shmp->state; }
 
-    void SetState(char st) { shmp->state = st; }
+    void SetState(bool st) { shmp->state = st; }
 
     int GetTag() { return shmp->tag; }
 
@@ -63,12 +70,23 @@ public:
 
     void SetNumber(int32_t num) { int32ToChar(shmp->data, num); }
 
-    void SendStream(std::string &str);
+    /*
+    in SendStream(..) and RecieveStream(..)
+    data is sent in parts
+    in case it's not fully fits in shrData.data[]
+    */
 
-    void SendStream(char *ar);
+    /*  server -> client  */
+    void SendStreamToClient(std::string &str);
 
-    std::string RecieveStream();
+    void SendStreamToClient(char *ar);
 
-    #undef SM_WRITE
-    #undef SM_READ
+    std::string RecieveStreamFromServer();
+
+    /*  client -> server  */
+    void SendStreamToServer(std::string &str);
+
+    void SendStreamToServer(char *ar);
+
+    std::string RecieveStreamFromClient();
 };

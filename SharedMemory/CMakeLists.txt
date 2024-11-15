@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.10)
 project(SharedMemory VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 
@@ -10,7 +11,7 @@ file(GLOB LIBPRINT_LIB_SOURCE ${LIBPRINT_LIB_SOURCE_DIR}/*.cpp)
 add_library(${PROJECT_NAME} SHARED ${LIBPRINT_LIB_SOURCE})
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
-target_compile_options(${PROJECT_NAME} PRIVATE "-Wall")
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${LIBPRINT_LIB_INCLUDE_DIR})
 

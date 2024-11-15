@@ -1,20 +1,15 @@
 #include "SharedMemory.hpp"
 
-#define SM_WRITE 0
-#define SM_READ 1
-
 int SharedMemory::Init() {
     bool exist = false;
 
     // create shared memory object
     fd = shm_open(memname, O_CREAT | O_EXCL | O_RDWR, S_IREAD | S_IWRITE | S_IEXEC);
-    if (errno == EEXIST)
-    {
+    if (errno == EEXIST) {
         fd = shm_open(memname, O_RDWR, S_IREAD | S_IWRITE | S_IEXEC);
         exist = true;
     }
-    else
-    {
+    else {
         if (ftruncate(fd, sizeof(shrData)) == -1)
             return -1;
     }
@@ -27,7 +22,7 @@ int SharedMemory::Init() {
         return -1;
 
     if (!exist)
-        shmp->state = SM_WRITE;
+        shmp->state = SM_SERVER;
     return 0;
 }
 
@@ -43,61 +38,77 @@ int SharedMemory::Close() {
 }
 
 void SharedMemory::int32ToChar(char a[], int32_t n) {
-    memcpy(a, &n, 4);
+    memcpy(a, &n, sizeof(int32_t));
 }
 
 int32_t SharedMemory::charToInt32(char a[]) {
-    int32_t n = 0;
-    memcpy(&n, a, 4);
+    int32_t n;
+    memcpy(&n, a, sizeof(int32_t));
     return n;
 }
 
-void SharedMemory::SendStream(std::string &str) {
-    size_t dataLength = str.length();
-    for (size_t s = 0; s < dataLength; s += bufsize)
-    {
-        memcpy(&shmp->data, &str.data()[s], std::min(bufsize, dataLength - s));
-        shmp->dataSize = dataLength - s;
-        shmp->state = SM_READ;
-        while (shmp->state != SM_WRITE)
-        {
-            usleep(sleepDurationMs * 1000);
-        }
-    }
-    shmp->state = SM_READ;
-}
-
-void SharedMemory::SendStream(char *ar) {
-    size_t dataLength = strlen(ar);
-    for (size_t s = 0; s < dataLength; s += bufsize)
-    {
+void SharedMemory::SendStreamCore(size_t &dataLength, char *ar, bool sender) {
+    for (size_t s = 0; s < dataLength; s += bufsize) {
         memcpy(&shmp->data, &ar[s], std::min(bufsize, dataLength - s));
         shmp->dataSize = dataLength - s;
-        shmp->state = SM_READ;
-        while (shmp->state != SM_WRITE)
-        {
+        shmp->state = !sender;
+
+        int i = 0;
+        while (shmp->state != sender) {
             usleep(sleepDurationMs * 1000);
+            if (i++ > awaitIter)
+                return;
         }
     }
-    shmp->state = SM_READ;
+    shmp->state = !sender;
 }
 
-std::string SharedMemory::RecieveStream() {
+std::string SharedMemory::RecieveStreamCore(bool reciever) {
     std::string str = "";
-    while (true)
-    {
-        while (shmp->state != SM_READ)
-        {
+    while (true) {
+        int i = 0;
+        while (shmp->state != reciever) {
             usleep(sleepDurationMs * 1000);
+            if (i++ > awaitIter) {
+                shmp->state = reciever;
+                str = "NO ANSWER";
+                return str;
+            }
         }
         str.append(shmp->data, std::min(bufsize, shmp->dataSize));
+        shmp->state = !reciever;         // tell server you've done with it
         if (shmp->dataSize <= bufsize)
             break;
-        shmp->state = SM_WRITE;
     }
-    shmp->state = SM_WRITE;
     return str;
 }
 
-#undef SM_WRITE
-#undef SM_READ
+/*  server -> client  */
+void SharedMemory::SendStreamToClient(std::string &str) {
+    size_t dataLength = str.length();
+    SendStreamCore(dataLength, str.data(), SM_SERVER);
+}
+
+void SharedMemory::SendStreamToClient(char *ar) {
+    size_t dataLength = strlen(ar);
+    SendStreamCore(dataLength, ar, SM_SERVER);
+}
+
+std::string SharedMemory::RecieveStreamFromServer() {
+    return RecieveStreamCore(SM_CLIENT);
+}
+
+/*  client -> server  */
+void SharedMemory::SendStreamToServer(std::string &str) {
+    size_t dataLength = str.length();
+    SendStreamCore(dataLength, str.data(), SM_CLIENT);
+}
+
+void SharedMemory::SendStreamToServer(char *ar) {
+    size_t dataLength = strlen(ar);
+    SendStreamCore(dataLength, ar, SM_CLIENT);
+}
+
+std::string SharedMemory::RecieveStreamFromClient() {
+    return RecieveStreamCore(SM_SERVER);
+}
