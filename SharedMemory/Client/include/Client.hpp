@@ -1,7 +1,11 @@
+#pragma once
+
 #include "SharedMemory.hpp"
 
 #include <iostream>
 #include <map>
+#include <vector>
+#include <functional>
 
 class Client {
 private:

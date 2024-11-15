@@ -5,7 +5,6 @@ include(GNUInstallDirs)
 set(MAINS_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB MAINS_SOURCE ${MAINS_SOURCE_DIR}/*.cpp)
 
-
 foreach(SOURCE_PATH ${MAINS_SOURCE})
 
     get_filename_component(EXECUTABLE_NAME ${SOURCE_PATH} NAME_WE)
@@ -15,9 +14,9 @@ foreach(SOURCE_PATH ${MAINS_SOURCE})
     target_compile_features(${EXECUTABLE_NAME} PUBLIC cxx_std_20)
     target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra)
 
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE SharedMemory)
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE SharedMemServer)
-    target_link_libraries(${EXECUTABLE_NAME} PRIVATE SharedMemClient)
+    #target_link_libraries(${EXECUTABLE_NAME} PRIVATE transport.shrmem-Server)
+    #target_link_libraries(${EXECUTABLE_NAME} PRIVATE transport.shrmem-Client)
+    target_link_libraries(${EXECUTABLE_NAME} PRIVATE transport.shrmem)
 
     set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 

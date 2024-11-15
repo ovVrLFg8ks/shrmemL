@@ -1,20 +1,22 @@
 cmake_minimum_required(VERSION 3.10)
-project(SharedMemory VERSION 1.0.0 LANGUAGES CXX)
+project(transport.shrmem VERSION 1.0.0 LANGUAGES CXX)
 include(GNUInstallDirs)
 
-set(LIBPRINT_LIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(LIBPRINT_LIB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_subdirectory(Core)
+add_subdirectory(Server)
+add_subdirectory(Client)
 
-file(GLOB LIBPRINT_LIB_HEADERS ${LIBPRINT_LIB_INCLUDE_DIR}/*.hpp)
-file(GLOB LIBPRINT_LIB_SOURCE ${LIBPRINT_LIB_SOURCE_DIR}/*.cpp)
+add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/Server/include/Server.hpp ${CMAKE_CURRENT_SOURCE_DIR}/Client/include/Client.hpp)
 
-add_library(${PROJECT_NAME} SHARED ${LIBPRINT_LIB_SOURCE})
-
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBPRINT_LIB_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME} INTERFACE transport.shrmem-Core)
+target_link_libraries(${PROJECT_NAME} INTERFACE transport.shrmem-Server)
+target_link_libraries(${PROJECT_NAME} INTERFACE transport.shrmem-Client)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Core/include)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})

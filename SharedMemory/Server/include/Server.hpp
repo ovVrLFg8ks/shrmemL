@@ -1,9 +1,13 @@
+#pragma once
+
 #include "SharedMemory.hpp"
 
 #include <iostream>
 #include <ctime>
 #include <chrono>
 #include <map>
+#include <vector>
+#include <functional>
 
 class Server {
 private:
