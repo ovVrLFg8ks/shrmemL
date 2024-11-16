@@ -1,8 +1,8 @@
-#include "Client.hpp"
+#include "SharedMemory.hpp"
 
 // IT'S A CLIENT
 int main([[maybe_unused]]int argc, [[maybe_unused]]char* argv[]) {
-    Client client;
+    SharedMemoryClient client;
     std::cout << "print something" << std::endl;
     client.WorkLoop();
     std::cout << "exiting" << std::endl;

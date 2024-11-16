@@ -1,8 +1,11 @@
-#include "Server.hpp"
+#include "SharedMemory.hpp"
+
+#include <thread>
+#include <atomic>
 
 // IT'S A SERVER
 int main([[maybe_unused]]int argc, [[maybe_unused]]char* argv[]) {
-    Server server;      // init server
+    SharedMemoryServer server;      // init server
     server.WorkLoop();  // process client requests
 
     return 0;

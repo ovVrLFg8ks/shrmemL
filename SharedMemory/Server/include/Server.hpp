@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SharedMemory.hpp"
+#include "SharedMemoryCore.hpp"
 
 #include <iostream>
 #include <ctime>
@@ -9,7 +9,7 @@
 #include <vector>
 #include <functional>
 
-class Server {
+class SharedMemoryServer {
 private:
     std::string status = "OK!";     // server/equipment status
     int32_t frequency = 1000;       // equipment freq
@@ -55,21 +55,21 @@ private:
 
     // map of previous functions to execute in WorkLoop()
     std::map<int, std::function<void()>> comms {
-        {TAG_PING,      std::bind(&Server::Ping, this)},
-        {TAG_EXIT,      std::bind(&Server::Exit, this)},
-        {TAG_STATUS,    std::bind(&Server::Status, this)},
-        {TAG_SETFREQ,   std::bind(&Server::SetFrequency, this)},
-        {TAG_SETPOWER,  std::bind(&Server::SetPower, this)},
-        {TAG_GETFREQ,   std::bind(&Server::GetFrequency, this)},
-        {TAG_GETPOWER,  std::bind(&Server::GetPower, this)},
-        {TAG_SETFAULT,  std::bind(&Server::SetFault, this)},
-        {TAG_CLRFAULT,  std::bind(&Server::ClearFault, this)},
-        {TAG_LISTFAULT, std::bind(&Server::ListFaults, this)},
-        {TAG_STRTOSERV, std::bind(&Server::RecvStr, this)}
+        {TAG_PING,      std::bind(&SharedMemoryServer::Ping, this)},
+        {TAG_EXIT,      std::bind(&SharedMemoryServer::Exit, this)},
+        {TAG_STATUS,    std::bind(&SharedMemoryServer::Status, this)},
+        {TAG_SETFREQ,   std::bind(&SharedMemoryServer::SetFrequency, this)},
+        {TAG_SETPOWER,  std::bind(&SharedMemoryServer::SetPower, this)},
+        {TAG_GETFREQ,   std::bind(&SharedMemoryServer::GetFrequency, this)},
+        {TAG_GETPOWER,  std::bind(&SharedMemoryServer::GetPower, this)},
+        {TAG_SETFAULT,  std::bind(&SharedMemoryServer::SetFault, this)},
+        {TAG_CLRFAULT,  std::bind(&SharedMemoryServer::ClearFault, this)},
+        {TAG_LISTFAULT, std::bind(&SharedMemoryServer::ListFaults, this)},
+        {TAG_STRTOSERV, std::bind(&SharedMemoryServer::RecvStr, this)}
     };
 
 public:
-    Server() : shm(SharedMemory(MEMNAME)) {
+    SharedMemoryServer() : shm(SharedMemory(MEMNAME)) {
         shm.SetState(SM_CLIENT);            // pass control to client
         faults.emplace_back(0, std::chrono::system_clock::now());
     }

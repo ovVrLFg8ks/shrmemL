@@ -1,21 +1,21 @@
 #include "Server.hpp"
 
-void Server::Ping() {       // answer client
+void SharedMemoryServer::Ping() {       // answer client
     std::cout << "ping-pong" << std::endl;
     shm.SendStreamToClient((char*)"pong");
 }
 
-void Server::Exit() {       // exit WorkLoop()
+void SharedMemoryServer::Exit() {       // exit WorkLoop()
     std::cout << "exit!" << std::endl;
     working = false;
 }
 
-void Server::Status() {     // give client server/equipment status
+void SharedMemoryServer::Status() {     // give client server/equipment status
     std::cout << "status?" << std::endl;
     shm.SendStreamToClient(status);
 }
 
-void Server::SetFrequency() {   // set frequency by client
+void SharedMemoryServer::SetFrequency() {   // set frequency by client
     if (shm.GetNumber() >= minFrequency) {
         frequency = shm.GetNumber();
         std::cout << "frequency set: " << frequency << std::endl;
@@ -27,7 +27,7 @@ void Server::SetFrequency() {   // set frequency by client
     }
 }
 
-void Server::SetPower() {       // set power by client
+void SharedMemoryServer::SetPower() {       // set power by client
     if (shm.GetNumber() > 0) {
         power = shm.GetNumber();
         std::cout << "power set: " << power << std::endl;
@@ -44,25 +44,25 @@ void Server::SetPower() {       // set power by client
     }
 }
 
-void Server::GetFrequency() {   // client gets frequency
+void SharedMemoryServer::GetFrequency() {   // client gets frequency
     std::cout << "frequency?" << std::endl;
     shm.SetNumber(frequency);
     shm.SetState(SM_CLIENT);
 }
 
-void Server::GetPower() {       // client gets power
+void SharedMemoryServer::GetPower() {       // client gets power
     std::cout << "power?" << std::endl;
     shm.SetNumber(power);
     shm.SetState(SM_CLIENT);
 }
 
-void Server::SetFault() {       // client sets fault
+void SharedMemoryServer::SetFault() {       // client sets fault
     faults.emplace_back(shm.GetNumber(), std::chrono::system_clock::now());
     std::cout << "new fault " << shm.GetNumber() << std::endl;
     shm.SendStreamToClient((char*)"ok");
 }
 
-void Server::ClearFault() {     // client clears fault
+void SharedMemoryServer::ClearFault() {     // client clears fault
     int32_t faultCode = shm.GetNumber();
     bool faultFound = false;
     for (size_t i = 0; i < faults.size(); i++) {
@@ -82,7 +82,7 @@ void Server::ClearFault() {     // client clears fault
     }
 }
 
-void Server::ListFaults() {     // send faults table to client 
+void SharedMemoryServer::ListFaults() {     // send faults table to client 
     std::cout << "faults list?" << std::endl;
     std::string list = "faults:\n";
     if (faults.size() == 0)
@@ -96,12 +96,12 @@ void Server::ListFaults() {     // send faults table to client
     shm.SendStreamToClient(list);
 }
 
-void Server::RecvStr() {
+void SharedMemoryServer::RecvStr() {
     shm.SetState(SM_CLIENT);
     std::cout << shm.RecieveStreamFromClient() << std::endl;
 }
 
-void Server::WorkLoop() {
+void SharedMemoryServer::WorkLoop() {
     working = true;
     while (working) {
         if (shm.GetState() == SM_SERVER) {

@@ -14,8 +14,6 @@ foreach(SOURCE_PATH ${MAINS_SOURCE})
     target_compile_features(${EXECUTABLE_NAME} PUBLIC cxx_std_20)
     target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra)
 
-    #target_link_libraries(${EXECUTABLE_NAME} PRIVATE transport.shrmem-Server)
-    #target_link_libraries(${EXECUTABLE_NAME} PRIVATE transport.shrmem-Client)
     target_link_libraries(${EXECUTABLE_NAME} PRIVATE transport.shrmem)
 
     set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${PROJECT_VERSION})

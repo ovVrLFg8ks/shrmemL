@@ -1,4 +1,4 @@
-#include "SharedMemory.hpp"
+#include "SharedMemoryCore.hpp"
 
 int SharedMemory::Init() {
     bool exist = false;
