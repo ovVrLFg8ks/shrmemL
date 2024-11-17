@@ -8,7 +8,7 @@
 #include <functional>
 
 class SharedMemoryClient {
-private:
+protected:
     SharedMemory shm;
 
     bool working = true;    // WorkLoop() state
@@ -18,6 +18,7 @@ private:
 
     int AwaitLoop();
 
+public:
     void Ping();            // ping server
 
     void Exit();            // server and client shutdown
@@ -38,6 +39,7 @@ private:
 
     void ListFault();       // recieve and print table of faults
 
+protected:
     void SendStr();         // send stream to server
 
     // unordered_map makes PrintCommandKeys() print in right order
@@ -61,5 +63,9 @@ private:
 public:
     SharedMemoryClient() : shm(SharedMemory(MEMNAME)) {}
 
+    SharedMemoryClient(const char *name) : shm(SharedMemory(name)) {}
+
     void WorkLoop();
+
+    void Stop() { working = false; }
 };

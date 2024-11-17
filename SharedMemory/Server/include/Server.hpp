@@ -10,7 +10,7 @@
 #include <functional>
 
 class SharedMemoryServer {
-private:
+protected:
     std::string status = "OK!";     // server/equipment status
     int32_t frequency = 1000;       // equipment freq
     int32_t minFrequency = 1000;    // 1000 for example 
@@ -30,7 +30,8 @@ private:
     std::vector<Fault> faults;
     //std::multiset<Fault> s;
     SharedMemory shm;
-    
+
+public:
     void Ping();            // answer client
 
     void Exit();            // exit WorkLoop()
@@ -51,7 +52,8 @@ private:
 
     void ListFaults();      // send faults table to client
 
-    void RecvStr();
+protected:
+    void RecvStr();         // test 
 
     // map of previous functions to execute in WorkLoop()
     std::map<int, std::function<void()>> comms {
@@ -71,11 +73,14 @@ private:
 public:
     SharedMemoryServer() : shm(SharedMemory(MEMNAME)) {
         shm.SetState(SM_CLIENT);            // pass control to client
-        faults.emplace_back(0, std::chrono::system_clock::now());
     }
 
-    /* you can add constructor for your MEMNAME here maybe */
+    SharedMemoryServer(const char *name) : shm(SharedMemory(name)) {
+        shm.SetState(SM_CLIENT);            // pass control to client
+    }
 
     // processes client requests
     void WorkLoop();
+
+    void Stop() { working = false; }
 };
